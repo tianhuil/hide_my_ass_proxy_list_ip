@@ -23,18 +23,18 @@ from scrapy import log
 
 from scrapy.xlib.pydispatch import dispatcher
 from scrapy import signals
-        
+
 class HideMyAssSpider(CrawlSpider):
     name = 'hidemyass'
     start_urls = [
     'http://hidemyass.com/proxy-list/'
     ]
     allowed_domains = ['hidemyass.com']
-    
+
     rules = (
         Rule(SgmlLinkExtractor(
                 restrict_xpaths=(
-                    '//div[@id="container"]//div[@id="pagination"]/ul/div/li[@class="nextpageactive"]/a')
+                    "//a[@class='next']")
                 ),
             callback='parse', follow=True),
     )
@@ -43,7 +43,7 @@ class HideMyAssSpider(CrawlSpider):
         self.log('No item received for %s' % response.url)
 
         for elem in super(HideMyAssSpider, self).parse(response):
-            yield elem       
+            yield elem
 
         hxs = HtmlXPathSelector(response)
         links = hxs.select('//tr[@class="altshade"]')
@@ -78,10 +78,10 @@ class HideMyAssSpider(CrawlSpider):
                     # Workaround bug in lxml.etree: Argument 'element' has incorrect type (expected lxml.etree._Element, got _ElementStringResult)
                     pass
 
-                try:                
+                try:
                     tag_name = ipaddress_part.select("name()")
                 except TypeError:
-                    # Workaround bug in lxml.etree: Argument 'element' has incorrect type (expected lxml.etree._Element, got _ElementStringResult) 
+                    # Workaround bug in lxml.etree: Argument 'element' has incorrect type (expected lxml.etree._Element, got _ElementStringResult)
                     pass
 
                 if tag_name:
@@ -115,10 +115,10 @@ class HideMyAssSpider(CrawlSpider):
             loader.add_value('url', response.url)
 
             item = loader.load_item()
-            
+
             yield item
 
-                        
+
 class Website(Item):
     url = Field()
     ipaddress = Field()
@@ -128,7 +128,7 @@ class Website(Item):
     connection_time = Field()
     proxy_type = Field()
     anonimity = Field()
-    
+
 
 class WebsiteLoader(XPathItemLoader):
     default_item_class = Website
@@ -153,7 +153,7 @@ class SWPipeline(object):
     def spider_closed(self, spider):
         if self.data:
             self.write_data(spider)
-    
+
     def write_data(self, spider):
         #unique_keys = spider.settings.get('SW_UNIQUE_KEYS', ['ipaddress'])
         unique_keys = ['ipaddress']
@@ -165,11 +165,11 @@ def run_spider(spider, settings):
     from scrapy import signals
     from scrapy.xlib.pydispatch import dispatcher
     from scrapy.settings import CrawlerSettings
-      
+
     def catch_item(sender, item, **kwargs):
         #log.msg("Got:" + str(item))
         pass
-       
+
     dispatcher.connect(catch_item, signal=signals.item_passed)
 
     from scrapy.crawler import CrawlerProcess
@@ -177,8 +177,6 @@ def run_spider(spider, settings):
     settings = CrawlerSettings(values=settings)
 
     crawler = CrawlerProcess(settings)
-    crawler.install()
-    crawler.configure()
     crawler.crawl(spider)
 
     #log.start(loglevel='DEBUG')
@@ -204,7 +202,7 @@ def scraper():
         'ITEM_PIPELINES': ['script.SWPipeline'],
     }
 
-       
+
     run_spider(HideMyAssSpider(), options)
 
 
